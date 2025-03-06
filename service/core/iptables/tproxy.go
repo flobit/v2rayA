@@ -2,12 +2,13 @@ package iptables
 
 import (
 	"fmt"
-	"github.com/v2rayA/v2rayA/common/cmds"
-	"github.com/v2rayA/v2rayA/core/v2ray/asset"
-	"github.com/v2rayA/v2rayA/db/configure"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/v2rayA/v2rayA/common/cmds"
+	"github.com/v2rayA/v2rayA/core/v2ray/asset"
+	"github.com/v2rayA/v2rayA/db/configure"
 )
 
 var (
@@ -108,7 +109,7 @@ iptables -w 2 -t mangle -A TP_RULE -m mark --mark 0x40/0xc0 -j RETURN
 	}
 	commands += `
 iptables -w 2 -t mangle -A TP_RULE -d 0.0.0.0/32 -j RETURN
-iptables -w 2 -t mangle -A TP_RULE -d 10.0.0.0/8 -j RETURN
+#iptables -w 2 -t mangle -A TP_RULE -d 10.0.0.0/8 -j RETURN
 iptables -w 2 -t mangle -A TP_RULE -d 100.64.0.0/10 -j RETURN
 iptables -w 2 -t mangle -A TP_RULE -d 127.0.0.0/8 -j RETURN
 iptables -w 2 -t mangle -A TP_RULE -d 169.254.0.0/16 -j RETURN
@@ -247,6 +248,7 @@ func (t *nftTproxy) RemoveIPWhitelist(cidr string) {
 
 func (t *nftTproxy) GetSetupCommands() Setter {
 	// 198.18.0.0/15 and fc00::/7 are reserved for private use but used by fakedns
+	// 10.0.0.0/8,
 	table := `
 table inet v2raya {
     set whitelist {
@@ -255,7 +257,6 @@ table inet v2raya {
         auto-merge
         elements = {
             0.0.0.0/32,
-            10.0.0.0/8,
             100.64.0.0/10,
             127.0.0.0/8,
             169.254.0.0/16,

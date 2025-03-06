@@ -53,7 +53,7 @@ iptables -w 2 -t nat -N TP_OUT
 iptables -w 2 -t nat -N TP_PRE
 iptables -w 2 -t nat -N TP_RULE
 iptables -w 2 -t nat -A TP_RULE -d 0.0.0.0/32 -j RETURN
-iptables -w 2 -t nat -A TP_RULE -d 10.0.0.0/8 -j RETURN
+#iptables -w 2 -t nat -A TP_RULE -d 10.0.0.0/8 -j RETURN
 iptables -w 2 -t nat -A TP_RULE -d 100.64.0.0/10 -j RETURN
 iptables -w 2 -t nat -A TP_RULE -d 127.0.0.0/8 -j RETURN
 iptables -w 2 -t nat -A TP_RULE -d 169.254.0.0/16 -j RETURN
@@ -153,6 +153,7 @@ func (t *nftRedirect) RemoveIPWhitelist(cidr string) {
 
 func (r *nftRedirect) GetSetupCommands() Setter {
 	// 198.18.0.0/15 and fc00::/7 are reserved for private use but used by fakedns
+	// 10.0.0.0/8,
 	table := `
 table inet v2raya {
     set whitelist {
@@ -161,7 +162,6 @@ table inet v2raya {
         auto-merge
         elements = {
             0.0.0.0/32,
-            10.0.0.0/8,
             100.64.0.0/10,
             127.0.0.0/8,
             169.254.0.0/16,

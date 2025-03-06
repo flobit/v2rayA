@@ -606,12 +606,60 @@ func parseRoutingA(t *Template, routingInboundTags []string) error {
 	for _, rule := range rules {
 		switch rule := rule.(type) {
 		case RoutingA.Define:
+
 			switch rule.Name {
 			case "inbound", "outbound":
 				switch o := rule.Value.(type) {
 				case RoutingA.Bound:
 					proto := o.Value
+
 					switch proto.Name {
+					case "trojan":
+						if rule.Name == "outbound" {
+							if len(proto.NamedParams["host"]) < 1 ||
+								len(proto.NamedParams["port"]) < 1 ||
+								len(proto.NamedParams["password"]) < 1 ||
+								len(proto.NamedParams["sni"]) < 1 {
+								continue
+							}
+
+							host := proto.NamedParams["host"][0]
+							port, err := strconv.Atoi(proto.NamedParams["port"][0])
+							if err != nil {
+								continue
+							}
+							password := proto.NamedParams["password"][0]
+							sni := proto.NamedParams["sni"][0]
+							network := "tcp"
+							if len(proto.NamedParams["network"]) > 0 {
+								network = proto.NamedParams["network"][0]
+							}
+							mark := 128
+							t.Outbounds = append(t.Outbounds, coreObj.OutboundObject{
+								Tag:      o.Name,
+								Protocol: o.Value.Name,
+								Settings: coreObj.Settings{
+									Servers: []coreObj.Server{
+										{
+											Port:     port,
+											Address:  host,
+											Password: password,
+										},
+									},
+								},
+								StreamSettings: &coreObj.StreamSettings{
+									Network:  network,
+									Security: "tls",
+									TLSSettings: &coreObj.TLSSettings{
+										AllowInsecure: false,
+										ServerName:    sni,
+									},
+									Sockopt: &coreObj.Sockopt{
+										Mark: &mark,
+									},
+								},
+							})
+						}
 					case "http", "socks":
 						if len(proto.NamedParams["address"]) < 1 ||
 							len(proto.NamedParams["port"]) < 1 {
